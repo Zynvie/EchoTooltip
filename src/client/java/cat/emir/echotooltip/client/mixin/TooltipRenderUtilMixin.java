@@ -1,5 +1,6 @@
 package cat.emir.echotooltip.client.mixin;
 
+import cat.emir.echotooltip.client.EchoTooltipClient;
 import cat.emir.echotooltip.client.GuiGraphicsTooltipAccess;
 import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -22,6 +23,9 @@ import java.util.Optional;
 @Mixin(TooltipRenderUtil.class)
 public abstract class TooltipRenderUtilMixin {
 
+    @Unique
+    private static final Identifier ECHOTOOLTIP$DEFAULT_FRAME = Identifier.withDefaultNamespace("tooltip/frame");
+
     @Redirect(
             method = "extractTooltipBackground",
             at = @At(
@@ -36,6 +40,10 @@ public abstract class TooltipRenderUtilMixin {
             Identifier location,
             int x, int y, int width, int height
     ) {
+        if (!ECHOTOOLTIP$DEFAULT_FRAME.equals(location) || EchoTooltipClient.isServerFrameOverride()) {
+            graphics.blitSprite(renderPipeline, location, x, y, width, height);
+            return;
+        }
         int color = echoTooltip$resolveColor(graphics);
         graphics.blitSprite(renderPipeline, location, x, y, width, height, 0xFF000000 | color);
     }
